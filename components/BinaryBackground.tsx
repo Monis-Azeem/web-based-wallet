@@ -12,105 +12,112 @@ export function BinaryBackground() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const time = useRef<number>(0);
   const mouseRef = useRef<MouseCoordinates>({ x: 0, y: 0 });
+  const effectiveRef = useRef<MouseCoordinates>({ x: 0, y: 0 });
 
   useEffect(() => {
     const canvas = canvasRef.current; //we are accessing the below canvas(DOM) element directly and it will persist across re-renders
     const container = containerRef.current;
+    const effectiveMouse = effectiveRef.current;
     const noise2D = createNoise2D();
 
     if (!canvas || !container) return;
 
-    canvas.width = container.offsetWidth * 1.5; //we will draw the canvas on the visual pixel size of the screen. Let's say 1000px and screen is 2000px, then canvas will be drawn on 1000 * 1.5 = 1500 px and then shrink back down to actual screen sizes below.
+    const dpr = window.devicePixelRatio || 1;
 
-    //CSS controls display size and this canvas.width controls how many pixels it draws on.
-    canvas.height = container.offsetHeight * 1.5;
+    canvas.width = container.offsetWidth * dpr; //we will draw the canvas on the visual pixel size of the screen. Let's say screen size is 1000px and screen is 2000px in itself, then canvas will be drawn on 1000 * 1.5 = 1500 px
+
+    //CSS using Tailwind controls display size and this canvas.width controls how many pixels it draws on.
+    canvas.height = container.offsetHeight * dpr;
 
     const ctx = canvas?.getContext("2d");
     if (!ctx) return;
-    ctx?.scale(1.5, 1.5);
+    ctx?.scale(dpr, dpr);
 
     const columns = Math.ceil(container.offsetWidth / cellWidth);
     const rows = Math.ceil(container.offsetHeight / cellHeight);
 
     const containerWidth = container.offsetWidth;
     const containerHeight = container.offsetHeight;
+
     let animationId: number; //kick off the animation loop
 
-    
-
-    const isLoaded = document.fonts.check("16px FixedSys");
-
-console.log(isLoaded); // true = ready to use
-
-    document.fonts.load('16px "FixedSys"').then(() => {
-
+    document.fonts
+      .load('13px "JetBrainsMono"')
+      .then(() => {
         const canvasZero = document.createElement("canvas");
-  canvasZero.width = cellWidth;
-  canvasZero.height = cellHeight;
+        canvasZero.width = cellWidth;
+        canvasZero.height = cellHeight;
+        const ctxZero = canvasZero.getContext("2d");
+        if (!ctxZero) throw new Error("ctxZero does not exist");
+        ctxZero.imageSmoothingEnabled = false;
+        ctxZero.font = '13px "JetBrainsMono"';
+        ctxZero.fillStyle = "#636363";
+        ctxZero.textAlign = "center";
+        ctxZero.textBaseline = "middle";
+        ctxZero.fillText("0", cellWidth / 2, cellHeight / 2);
 
-  const ctxZero = canvasZero.getContext("2d");
-  if (!ctxZero) throw new Error("ctxZero does not exist");
-  ctxZero.imageSmoothingEnabled = false;
-  ctxZero.font = '16px "FixedSys"';
-  // ctxZero.scale(1.5, 1.5)
-  ctxZero.fillStyle = "white";
-  ctxZero.textAlign = "center";
-  ctxZero.textBaseline = "middle";
-  ctxZero.fillText("0", cellWidth / 2, cellHeight / 2);
+        const canvasOne = document.createElement("canvas");
+        canvasOne.width = cellWidth;
+        canvasOne.height = cellHeight;
+        const ctxOne = canvasOne.getContext("2d");
+        if (!ctxOne) throw new Error("ctxOne does not exist");
+        ctxOne.imageSmoothingEnabled = false;
+        ctxOne.font = '13px "JetBrainsMono"';
+        ctxOne.fillStyle = "#f73900";
+        ctxOne.textAlign = "center";
+        ctxOne.textBaseline = "middle";
+        ctxOne.fillText("1", cellWidth / 2, cellHeight / 2);
 
-  const canvasOne = document.createElement("canvas");
-  canvasOne.width = cellWidth;
-  canvasOne.height = cellHeight;
+        const animate = () => {
+          ctx?.clearRect(0, 0, containerWidth, containerHeight);
+          ctx.fillStyle = "#000000";
+          ctx.fillRect(0, 0, containerWidth, containerHeight);
+          // effectiveMouse.x =
+          //   effectiveMouse.x + (mouseRef.current.x - effectiveMouse.x) * 0.07; //we are actually moving 7% towards the gap between actual mouse position and effective mouse position. we are also adding it again so that effective mouse position moves forward for the next frame.
+          // effectiveMouse.y =
+          //   effectiveMouse.y + (mouseRef.current.y - effectiveMouse.y) * 0.07;
 
-  const ctxOne = canvasOne.getContext("2d");
-  if (!ctxOne) throw new Error("ctxOne does not exist");
+          for (let row = 0; row < rows; row++) {
+            for (let col = 0; col < columns; col++) {
+              const noiseValue = noise2D(col * 0.12 + time.current, row * 0.12); //a noise function that gives a smooth value based on (x and y). This is responsible for that wobbly cloud thing. Else it would just random values getting change of 0 and 1. because of 0.12, nearby inputs gives nearby values
 
-  ctxOne.imageSmoothingEnabled = false
+              // const cellCenter = {
+              //   x: col * cellWidth + cellWidth / 2,
+              //   y: row * cellHeight + cellHeight / 2,
+              // };
+              // const distance = Math.sqrt(
+              //   Math.pow(effectiveMouse.x - cellCenter.x, 2) +
+              //     Math.pow(effectiveMouse.y - cellCenter.y, 2),
+              // );
+            //   const baseAlpha = 0.05 + Math.abs(noiseValue) * 0.5
+            //   const cursorBoost = distance < 180 ? (1 - distance / 180) * 0.55 : 0 //Now i was thinking okay that cursor boost is inversely proportional to distance so it should be k(constant)/distance but the problem is if distance is zero means cursor is at the cell and boost is zero and it explodes to zero. Also at long distance there would be some value and we would see constant cursorBoost still even if it is minimal.
 
-  ctxOne.font = '16px "FixedSys"';
-  // ctxOne.scale(1.5, 1.5)
-
-  ctxOne.fillStyle = "white";
-  ctxOne.textAlign = "center";
-  ctxOne.textBaseline = "middle";
-  ctxOne.fillText("1", cellWidth / 2, cellHeight / 2);
-
-      const animate = () => {
-        console.log("container width: ", containerWidth);
-        ctx?.clearRect(0, 0, containerWidth, containerHeight);
-        ctx.fillStyle = "#000000";
-        ctx.fillRect(0, 0, containerWidth, containerHeight);
-
-        for (let row = 0; row < rows; row++) {
-          for (let col = 0; col < columns; col++) {
-            const noiseValue = noise2D(col * 0.12 + time.current, row * 0.12);
-
-            //   const baseAlpha = 0.08 + Math.abs(noiseValue) * 0.18;
-            //     ctx.globalAlpha = baseAlpha;
-
-            const component = noiseValue > 0 ? canvasOne : canvasZero;
-            //   ctx.setTransform(1, 0, 0, 1, 0, 0);
-
-            ctx.drawImage(component, col * cellWidth, row * cellHeight);
-            //   ctx.setTransform(1.5, 0, 0, 1.5, 0, 0);
+              //   const cursorBoost = 180 //try constant
+              const component = noiseValue > 0 ? canvasOne : canvasZero;
+            //   if(distance < 180){
+                //   ctx.globalAlpha = Math.min(1, baseAlpha + cursorBoost);
+                // ctx.globalAlpha = 0.789879879879
+            //   }
+              ctx.drawImage(component, col * cellWidth, row * cellHeight);
+            }
           }
-        }
 
-        time.current = time.current + 0.003;
-        animationId = requestAnimationFrame(animate);
-      };
+          time.current = time.current + 0.003;
+          animationId = requestAnimationFrame(animate);
+        };
 
-      animate();
-    }).catch((err) => {
-        console.error('Error: ', err)
-    });
+        animate();
+      })
+      .catch((err) => {
+        console.error("Error: ", err);
+      });
 
     return () => cancelAnimationFrame(animationId);
   }, []);
 
   return (
     <div
-      className="w-full min-h-screen absolute inset-0 z-0 pixel-text"
+      className="w-full min-h-screen absolute inset-0 z-0"
       ref={containerRef}
     >
       <canvas
@@ -123,95 +130,8 @@ console.log(isLoaded); // true = ready to use
 
           //TODO: effective mouse x
         }}
+        style={{ imageRendering: "pixelated" }}
       ></canvas>
     </div>
   );
-}
-
-// function CanvasZero({ref} : {ref: React.Ref<HTMLCanvasElement>}) {
-// //   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-
-//   useEffect(() => {
-//     if(!ref || typeof ref === "function") return;
-
-//     const canvas = ref.current;
-//     if (!canvas) return;
-
-//     const ctxZero = canvas.getContext("2d");
-//     if (!ctxZero) return;
-
-//     ctxZero.font = "12px Geist";
-//     ctxZero.fillStyle = "white";
-//     ctxZero.textAlign = "center";
-//     ctxZero.textBaseline = "middle";
-//     ctxZero.fillText("0", 0, 0);
-//   }, []);
-//   return (
-//     <canvas
-//       className="text-center"
-//       style={{ width: cellWidth, height: cellHeight }}
-//       ref={ref}
-//     ></canvas>
-//   );
-// }
-
-// function CanvasOne({ref} : {ref: React.Ref<HTMLCanvasElement>}) {
-// //   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-
-//   useEffect(() => {
-//         if(!ref || typeof ref === "function") return;
-
-//     const canvas = ref.current;
-//     if (!canvas) return;
-
-//     const ctxOne = canvas.getContext("2d");
-//     if (!ctxOne) return;
-
-//     ctxOne.font = "12px Geist";
-//     ctxOne.fillStyle = "white";
-//     ctxOne.textAlign = "center";
-//     ctxOne.textBaseline = "middle";
-//     ctxOne.fillText("1", 0, 0);
-//   }, []);
-//   return (
-//     <canvas
-//       className="text-center"
-//       style={{ width: cellWidth, height: cellHeight }}
-//       ref={ref}
-//     ></canvas>
-//   );
-// }
-
-function canvasSelection(noiseValue: number): HTMLCanvasElement {
-  //CANVAS ONE AND ZERO------------
-  const canvasZero = document.createElement("canvas");
-  canvasZero.width = cellWidth;
-  canvasZero.height = cellHeight;
-
-  const ctxZero = canvasZero.getContext("2d");
-  if (!ctxZero) throw new Error("ctxZero does not exist");
-
-  ctxZero.font = "12px FixedSys";
-  // ctxZero.scale(1.5, 1.5)
-  ctxZero.fillStyle = "white";
-  ctxZero.textAlign = "center";
-  ctxZero.textBaseline = "middle";
-  ctxZero.fillText("0", cellWidth / 2, cellHeight / 2);
-
-  const canvasOne = document.createElement("canvas");
-  canvasOne.width = cellWidth;
-  canvasOne.height = cellHeight;
-
-  const ctxOne = canvasOne.getContext("2d");
-  if (!ctxOne) throw new Error("ctxOne does not exist");
-
-  ctxOne.font = "12px FixedSys";
-  // ctxOne.scale(1.5, 1.5)
-
-  ctxOne.fillStyle = "white";
-  ctxOne.textAlign = "center";
-  ctxOne.textBaseline = "middle";
-  ctxOne.fillText("1", cellWidth / 2, cellHeight / 2);
-
-  return noiseValue > 0 ? canvasOne : canvasZero;
 }
