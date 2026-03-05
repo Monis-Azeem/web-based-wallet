@@ -63,7 +63,8 @@ export function BinaryBackground() {
         if (!ctxOne) throw new Error("ctxOne does not exist");
         ctxOne.imageSmoothingEnabled = false;
         ctxOne.font = '13px "JetBrainsMono"';
-        ctxOne.fillStyle = "#f73900";
+        // ctxOne.fillStyle = "#f73900";
+        ctxOne.fillStyle = "#ff4111";
         ctxOne.textAlign = "center";
         ctxOne.textBaseline = "middle";
         ctxOne.fillText("1", cellWidth / 2, cellHeight / 2);
@@ -96,7 +97,7 @@ export function BinaryBackground() {
   }, []);
 
   return (
-    <div className="w-full min-h-screen inset-0 absolute" ref={containerRef}>
+    <div className="w-full min-h-screen inset-0 absolute z-0" ref={containerRef}>
       <canvas
         ref={canvasRef}
         className="w-full h-full"

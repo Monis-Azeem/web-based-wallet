@@ -69,7 +69,7 @@ export function BinaryBackgroundMask() {
 
         const animate = () => {
           ctx?.clearRect(0, 0, containerWidth, containerHeight);
-          ctx.fillStyle = "#f73900";
+          ctx.fillStyle = "#ff4111";
           ctx.fillRect(0, 0, containerWidth, containerHeight);
           if (containerRef.current) {
             containerRef.current.style.maskPosition = `${mouseRef.current.x - 130 / 2}px ${mouseRef.current.y - 130 / 2}px`;
@@ -98,7 +98,7 @@ export function BinaryBackgroundMask() {
 
   return (
     <div
-      className="absolute inset-0 w-full min-h-screen"
+      className="absolute inset-0 w-full min-h-screen z-1"
       ref={containerRef}
       style={{
         maskImage: "url(/Ellipse.svg)",
