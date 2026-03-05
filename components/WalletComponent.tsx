@@ -32,12 +32,12 @@ export function WalletComponent() {
   }
 
   return (
-    <>
-      <div className="dark bg-background w-full lg:w-[60%] rounded-md absolute z-2 flex flex-col p-8 mt-8 font-jet ml-8 mr-8 text-foreground">
+    <div className="max-h-screen w-[95%] lg:w-[60%] flex justify-center absolute z-2 pt-2 pb-2">
+      <div className="dark bg-background w-full rounded-md flex flex-col p-6 lg:p-8 font-jet text-foreground">
         <div className="w-full gap-4 flex justify-between items-center">
           <div>
             <h2 className="tracking-tight">Wallet Generator</h2>
-            <p>Web based Wallet</p>
+            <p>Web based Wallet</p> 
           </div>
 
           <div className="border-2 p-1 border-primary rounded-sm shadow-md shadow-primary flex justify-center items-center">
@@ -45,8 +45,8 @@ export function WalletComponent() {
           </div>
         </div>
 
-        <div className="flex gap-4 mt-8">
-          <Input placeholder="Enter Seed phrase or Press Generate Wallet" value={mnemonic} onChange={(e) => {
+        <div className="flex flex-col lg:flex-row gap-4 mt-8">
+          <Input className="placeholder:text-xs lg:placeholder:text-base" placeholder="Enter Seed phrase or Press Generate Wallet" value={mnemonic} onChange={(e) => {
             setMnemonic(e.currentTarget.value)
           }}/>
           <Button
@@ -57,7 +57,7 @@ export function WalletComponent() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 mt-8 gap-4 text-foreground">
+        <div className="grid grid-cols-1 mt-8 gap-4 text-foreground overflow-y-auto">
           {wallets.map((walletArr) =>
             walletArr.map((wallet, key) => (
               <div
@@ -113,6 +113,6 @@ export function WalletComponent() {
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 }

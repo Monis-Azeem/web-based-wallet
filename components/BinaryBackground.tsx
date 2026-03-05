@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from "react";
 import { createNoise2D } from "simplex-noise";
-import type { MouseCoordinates } from "@/types/mouse";
 
 const cellWidth = 16;
 const cellHeight = 16;
@@ -11,21 +10,20 @@ export function BinaryBackground() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const time = useRef<number>(0);
-  const effectiveRef = useRef<MouseCoordinates>({ x: 0, y: 0 });
+  const animationIdRef = useRef<number>(0);
 
-  useEffect(() => {
+  const handleAnimation = () => {
+    //This is so because while resizing; documents.load is returning a promise, so resize used to fire handleAnimation every single time which returns like 40-50 promises while resizing which when resolved used to increase time.current significantly. To resolve that we added debounce but still there were previous frames that were causing problems.
+    cancelAnimationFrame(animationIdRef.current);
+
     const canvas = canvasRef.current; //we are accessing the below canvas(DOM) element directly and it will persist across re-renders
     const container = containerRef.current;
-    const effectiveMouse = effectiveRef.current;
     const noise2D = createNoise2D();
 
     if (!canvas || !container) return;
 
     const dpr = window.devicePixelRatio || 1;
-
     canvas.width = container.offsetWidth * dpr; //we will draw the canvas on the visual pixel size of the screen. Let's say screen size is 1000px and screen is 2000px in itself, then canvas will be drawn on 1000 * 1.5 = 1500 px
-
-    //CSS using Tailwind controls display size and this canvas.width controls how many pixels it draws on.
     canvas.height = container.offsetHeight * dpr;
 
     const ctx = canvas?.getContext("2d");
@@ -37,8 +35,6 @@ export function BinaryBackground() {
 
     const containerWidth = container.offsetWidth;
     const containerHeight = container.offsetHeight;
-
-    let animationId: number; //kick off the animation loop
 
     document.fonts
       .load('13px "JetBrainsMono"')
@@ -84,7 +80,7 @@ export function BinaryBackground() {
           }
 
           time.current = time.current + 0.003;
-          animationId = requestAnimationFrame(animate);
+          animationIdRef.current = requestAnimationFrame(animate);
         };
 
         animate();
@@ -92,12 +88,33 @@ export function BinaryBackground() {
       .catch((err) => {
         console.error("Error: ", err);
       });
+  };
 
-    return () => cancelAnimationFrame(animationId);
+  useEffect(() => {
+    handleAnimation();
+    let debounceTimer: ReturnType<typeof setTimeout>;
+
+    const handleResize = () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        handleAnimation();
+      }, 150);
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      clearTimeout(debounceTimer);
+      cancelAnimationFrame(animationIdRef.current);
+      window.removeEventListener("resize", handleResize);
+    };
   }, []);
 
   return (
-    <div className="w-full min-h-screen inset-0 absolute z-0" ref={containerRef}>
+    <div
+      className="w-full min-h-screen inset-0 absolute z-0"
+      ref={containerRef}
+    >
       <canvas
         ref={canvasRef}
         className="w-full h-full"

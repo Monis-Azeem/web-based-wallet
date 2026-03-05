@@ -12,8 +12,11 @@ export function BinaryBackgroundMask() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const time = useRef<number>(0);
   const mouseRef = useRef<MouseCoordinates>({ x: 0, y: 0 });
+  const animationIdRef = useRef<number>(0);
 
-  useEffect(() => {
+  const handleAnimation = () => {
+    cancelAnimationFrame(animationIdRef.current);
+
     const canvas = canvasRef.current; //we are accessing the below canvas(DOM) element directly and it will persist across re-renders
     const container = containerRef.current;
     const noise2D = createNoise2D();
@@ -36,8 +39,6 @@ export function BinaryBackgroundMask() {
 
     const containerWidth = container.offsetWidth;
     const containerHeight = container.offsetHeight;
-
-    let animationId: number; //kick off the animation loop
 
     document.fonts
       .load('13px "JetBrainsMono"')
@@ -84,7 +85,7 @@ export function BinaryBackgroundMask() {
           }
 
           time.current = time.current + 0.003;
-          animationId = requestAnimationFrame(animate);
+          animationIdRef.current = requestAnimationFrame(animate);
         };
 
         animate();
@@ -92,8 +93,26 @@ export function BinaryBackgroundMask() {
       .catch((err) => {
         console.error("Error: ", err);
       });
+  };
 
-    return () => cancelAnimationFrame(animationId);
+  useEffect(() => {
+    handleAnimation();
+    let debounceTimer: ReturnType<typeof setTimeout>;
+
+    const handleResize = () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        handleAnimation();
+      }, 150);
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      clearTimeout(debounceTimer);
+      cancelAnimationFrame(animationIdRef.current);
+      window.removeEventListener("resize", handleResize);
+    };
   }, []);
 
   return (
