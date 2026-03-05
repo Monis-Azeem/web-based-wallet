@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Web Based Wallet
 
-## Getting Started
+A browser-based crypto wallet generator for Solana, Ethereum, and Bitcoin.
 
-First, run the development server:
+## Technologies
+
+- **Next.js 16** (App Router) — React framework
+- **TypeScript** — type safety
+- **Tailwind CSS v4** — styling
+- **shadcn/ui** — UI components
+- **BIP39** — mnemonic seed phrase generation
+- **@scure/bip32** — HD wallet derivation
+- **ethers.js** — Ethereum wallet
+- **@solana/web3.js** — Solana wallet
+- **@scure/btc-signer** — Bitcoin wallet
+- **simplex-noise** — smooth noise for binary rain
+- **lucide-react** — icons
+- **JetBrains Mono** — monospace font
+
+## Post
+
+[View on X →](https://x.com/MonisAzeem/status/2029513997377269923?s=20)
+
+## Wallet Generator
+
+Enter a seed phrase or leave it blank to generate one automatically. The app derives wallets for Solana, Ethereum, and Bitcoin from that phrase using standard BIP44 derivation paths. Each wallet shows a truncated address, public key, and private key — all copyable with one click.
+
+## Binary Rain
+
+The background is a full-screen HTML Canvas animation. Characters (0 and 1) are pre-rendered onto small offscreen canvases once for performance, then stamped across a grid every frame. Simplex noise drives which cells show 0 vs 1, creating smooth organic wave patterns instead of random flickering. The animation runs via `requestAnimationFrame` and handles window resize by recalculating the grid dimensions and restarting the loop.
+
+## Run locally
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Open [http://localhost:3000](http://localhost:3000)
