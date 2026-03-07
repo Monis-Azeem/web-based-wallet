@@ -14,18 +14,28 @@ type walletDerivation = {
 };
 
 // HD wallets based on BIP-39 and then used along concept of BIP-32
-export function generateWallet(derivationPaths: Array<walletDerivation>, x: string, mnemonicValue?: string): Array<WalletType> {
+export function generateWallet(
+  derivationPaths: Array<walletDerivation>,
+  x: string,
+  mnemonicValue?: string,
+): Array<WalletType> {
   let arr: Array<WalletType> = [];
 
-  console.log('Derivation Paths: ', derivationPaths)
+  console.log("Derivation Paths: ", derivationPaths);
 
-  const mnemonic = mnemonicValue && mnemonicValue.length > 0 ? mnemonicValue : generateMnemonic(256);
+  const mnemonic =
+    mnemonicValue && mnemonicValue.length > 0
+      ? mnemonicValue
+      : generateMnemonic(256);
   const seed = mnemonicToSeedSync(mnemonic);
 
   for (let i = 0; i < derivationPaths.length; i++) {
     let root, publicKey, privateKey, child, secretKey, walletAddress;
 
-    const newDerivationPath = derivationPaths[i].derivationPath.replace('x', `${x}`)
+    const newDerivationPath = derivationPaths[i].derivationPath.replace(
+      "x",
+      `${x}`,
+    );
 
     if (derivationPaths[i]?.name === "Ethereum") {
       root = HDKey.fromMasterSeed(seed); //master key
@@ -39,18 +49,16 @@ export function generateWallet(derivationPaths: Array<walletDerivation>, x: stri
       root = HDKey.fromMasterSeed(seed); //master key
       child = root.derive(newDerivationPath as string);
       publicKey = Buffer.from(child.publicKey ?? []).toString("hex");
-      privateKey = btc.WIF().encode(Buffer.from(child.privateKey ?? []));
+      privateKey = btc.WIF().encode(Buffer.from(child.privateKey ?? [])); //WIF means wallet import format - Bitcoin's own encoding system for private keys. It's base58check encoding.
       walletAddress = btc.p2wpkh(
+        //Pay to witness public key hash - this one does result in address with bech32 encoding.
         Buffer.from(child.publicKey ?? []),
         btc.NETWORK,
       ).address;
     } 
     
     else if (derivationPaths[i]?.name === "Solana") {
-      child = derivePath(
-        newDerivationPath as string,
-        seed.toString("hex"),
-      ).key; //This is child private key - 32 bytes
+      child = derivePath(newDerivationPath as string, seed.toString("hex")).key; //This is child private key - 32 bytes
       publicKey = bs58.encode(nacl.sign.keyPair.fromSeed(child).publicKey); //32 bytes
       secretKey = nacl.sign.keyPair.fromSeed(child).secretKey; //64 bytes - private key + publicKey
       privateKey = bs58.encode(secretKey); //This matches Phantom Solana and Metamask wallets
@@ -59,9 +67,9 @@ export function generateWallet(derivationPaths: Array<walletDerivation>, x: stri
 
     arr.push({
       name: derivationPaths[i]?.name,
-      publicKey: publicKey ?? '',
-      privateKey: privateKey ?? '',
-      walletAddress: walletAddress ?? '',
+      publicKey: publicKey ?? "",
+      privateKey: privateKey ?? "",
+      walletAddress: walletAddress ?? "",
     });
   }
 
